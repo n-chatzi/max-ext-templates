@@ -3,7 +3,7 @@
  *  @file	template.c
  *
  *
- *  Sources :
+ *  All sources used can be found here
  *
  *  Documentation :
  *      Cylcing 74'
@@ -32,8 +32,8 @@
  *               http://bb-attachments.cycling74.com.s3.amazonaws.com/2169.kingsleysmaxobjectprogrammingguide.doc
  *
  *      Cylcing 74'
- *          - Max/MSP SDK dummy by jeremy bernstein - jeremy@bootsquad.com :
- *              https://github.com/Cycling74/max-sdk/tree/master/source/basics/dummy
+ *          - Max/MSP SDK dummy & simplemax by jeremy bernstein - jeremy@bootsquad.com :
+ *              https://github.com/Cycling74/max-sdk/tree/master/source/basics/template
  *
  */
 
@@ -73,9 +73,11 @@
 // Basic Max objects are declared as C structures. The first element of the structure is a t_object, followed by whatever you want. The example below has one long structure member.
 typedef struct _template	///<	A struct to hold data for our object
 {
-    t_object obj;           ///<	The object itself (t_object in Max instead of t_pxobject for MSP)
-    t_atom val;             ///<	Value to use for the processing
-    void *out;              ///<    Output definition
+    t_object    obj;        ///<	The object itself (t_object in Max instead of t_object for MSP)
+    t_atom      val;        ///<	Value to use for the processing
+    t_symbol    name;       ///<    Name of the Max objct
+    void        *out0;      ///<    Output definition
+    void        *out1;      ///<    Output definition
 
 } t_template;
 
@@ -105,8 +107,9 @@ void template_in0( t_template *x, long n);      //1st inlet
 void template_in1( t_template *x, long n);      //2nd inlet
 
 //// performance set
-void template_dsp64(t_template *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);
-void template_perform64(t_template *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
+void template_anything(t_template *x, t_symbol *s, long ac, t_atom *av);    ///< request that args be passed as an array, the routine will check the types itself.
+void template_identify(t_template *x);
+void template_dblclick(t_template *x);
 
 
 
@@ -129,28 +132,26 @@ The initialization routine, which must be called main, is called when Max loads 
 
 void ext_main(void *r)
 {
-    // object initialization, note the use of dsp_free for the freemethod, which is required
-    // unless you need to free allocated memory, in which case you should call dsp_free from
-    // your custom free function.
-    
+    // object initialization
     // creates a class with the new instance routine (see below), a free function (in this case there isn't one, so we pass NULL), the size of the structure, a no-longer used argument, and then a description of the arguments you type when creating an instance (in this case, there are no arguments, so we pass 0).
-    t_class *c = class_new("template", (method)template_new, (method)dsp_free, (long)sizeof(t_template), 0L, A_GIMME, 0);
+    t_class *c = class_new("template", (method)template_new, (method)template_free, (long)sizeof(t_template), 0L, A_GIMME, 0);
     
     //binds a C function to a text symbol. The two methods defined here are int and bang.
     class_addmethod(c, (method)template_bang,       "bang",             0);
     class_addmethod(c, (method)template_int,        "int",      A_LONG, 0);
     class_addmethod(c, (method)template_float,		"float",	A_FLOAT,0);
-    class_addmethod(c, (method)template_dsp64,		"dsp64",	A_CANT, 0);
+    
     class_addmethod(c, (method)template_assist,     "assist",	A_CANT, 0);
+    class_addmethod(c, (method)template_anything,   "anything", A_GIMME, 0);
+    class_addmethod(c, (method)template_dblclick,   "dbclick",  A_CANT, 0);
+    
+    //Add a new attribute to the specified attribute to specify that it should appear in the inspector's Basic tab.
+    class_addmethod(c, (method)template_identify,   "identify",         0);
     
     class_addmethod(c, (method)template_in0,        "int",      A_LONG, 0);
     class_addmethod(c, (method)template_in1,        "in0",      A_LONG, 0);
     
-    // if the filename on disk is different from the object name in Max, ex. w/ times
-//  class_setname("*~","times~");
-    
-    //  Adds a set of methods to your object's class that are called by MSP to build the DSP call chain.
-    class_dspinit(c);
+    CLASS_ATTR_SYM(c, "name", 0, t_template, name);
     
     //  adds this class to the CLASS_BOX name space, meaning that it will be searched when a user tries to type it into a box.
     class_register(CLASS_BOX, c);
@@ -175,13 +176,10 @@ void *template_new(t_symbol *s, long argc, t_atom *argv)
     t_template *x = (t_template *) object_alloc((t_class *) template_class);
     
     //Setup 2 inlets for our object
-    dsp_setup((t_pxobject *)x, 2);
     
     //Give our object a signal outlet
-    outlet_new((t_pxobject *)x, "signal");
+    outlet_new((t_object *)x, "signal");
     
-    // splatted in _dsp method if optimizations are on
-    x->x_val = argc;
     
     return (x);
 }
@@ -247,13 +245,13 @@ void template_in1( t_template *x, long n)
 //This simply copies the value of the argument to the internal storage within the instance.
 void template_int(t_template *x, long n)
 {
-    x-> x_val = n;
+    x-> val = n;
 }
 
 //This simply copies the value of the argument to the internal storage within the instance.
 void template_float(t_template *x, double f)
 {
-    x-> x_val = f;
+    x-> val = f;
 }
 
 void template_bang(t_template *x)
@@ -269,43 +267,6 @@ void template_bang(t_template *x)
 //                          Perfomance Routines
 //____________________________________________________________________
 
-// registers a function for the signal chain in Max
-// Calls the appropriate functions to do the processing
-void template_dsp64(t_template *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
-{
-    post("my sample rate is: %f", samplerate);
-    
-    /* 
-        instead of calling dsp_add(), we send the "dsp_add64" message to the object representing the dsp chain
-     the arguments passed are:
-            1: the dsp64 object passed-in by the calling function
-            2: the symbol of the "dsp_add64" message we are sending
-            3: a pointer to your object
-            4: a pointer to your 64-bit perform method
-            5: flags to alter how the signal chain handles your object -- just pass 0
-            6: a generic pointer that you can use to pass any additional data to your perform method
-     */
-    
-    object_method(dsp64, gensym("dsp_add64"), x, template_perform64, 0, NULL);
-}
-
-// this is the 64-bit perform method audio vectors
-// Perform processing on signal & float connected to inlets
-void template_perform64(t_template *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
-{
-    t_double *inL = ins[0];     // we get audio for each inlet of the object from the **ins argument
-    t_double *inR = ins[1];
-    t_double *out = outs[0];    // we get audio for each outlet of the object from the **outs argument
-
-    t_double ftmp;
-
-    // this perform method simply copies the input to the output, offsetting the value
-    while (sampleframes--) {
-        ftmp = *inL++ * *inR++;
-        FIX_DENORM_NAN_DOUBLE(ftmp);
-        *out++ = ftmp;
-    }
-}
 
 
 
