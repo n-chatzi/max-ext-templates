@@ -83,6 +83,7 @@ typedef struct _template	///<	A struct to hold data for our object
     t_atom      val_0;      ///<	Value to use for inlet 0
     t_atom      val_1;      ///<	Value to use for inlet 1
     void        *proxy;     ///<    A proxy is a small object that controls an inlet, but does not translate the message it receives. The advantage of proxies over regular inlets is that your object can respond to any message in all of its inlets.
+    long        in_n;       ///<    Space for the inlet number used by all the proxies
     t_symbol    name;       ///<    Name of the Max object
     void        *out_0;     ///<    Output definition
     void        *out_1;     ///<    Output definition
@@ -159,8 +160,6 @@ void ext_main(void *r)
     class_addmethod(c, (method)template_in0,        "int",      A_LONG, 0);
     class_addmethod(c, (method)template_in1,        "in0",      A_LONG, 0);
     
-    x->proxy = proxy_new((t_object *)x, 1, &x->val_0);
-    
     CLASS_ATTR_SYM(c, "name", 0, t_template, name);
     
     //  adds this class to the CLASS_BOX name space, meaning that it will be searched when a user tries to type it into a box.
@@ -194,6 +193,9 @@ void *template_new(t_symbol *s, long argc, t_atom *argv)
     outlet_new((t_object *)x, NULL);    //NULL indicates the outlet will be used to send various messages
     x->out_0 = intout((t_object *)x);
     x->out_1 = intout((t_object *)x);
+    
+    // passing your object, a non-zero code value associated with the proxy, and a pointer to your object's inlet number location.
+    x->proxy = proxy_new((t_object *) x, 1, &x->in_n);
     
     return (x);
 }
