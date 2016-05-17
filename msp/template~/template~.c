@@ -168,6 +168,7 @@ void *template_new(t_symbol *s, long argc, t_atom *argv)
     
     //Give our object a signal outlet
     outlet_new((t_pxobject *)x, "signal");
+    outlet_new((t_pxobject *)x, "signal");
     
     // splatted in _dsp method if optimizations are on
     x->x_val = argc;
@@ -195,8 +196,8 @@ void template_assist(t_template *x, void *b, long m, long a, char *s)
     else {
         // outlet
         switch (a){
-            case 2: sprintf(s, "(Signal) Left Output"); break;
-            case 3: sprintf(s, "(Signal) Right Output"); break;
+            case 2: sprintf(s, "(Signal) Left Output  : L*R"); break;
+            case 3: sprintf(s, "(Signal) Right Output : L+R"); break;
         }
     }
 }
@@ -284,15 +285,24 @@ void template_perform64(t_template *x, t_object *dsp64, double **ins, long numin
 {
     t_double *inL = ins[0];     // we get audio for each inlet of the object from the **ins argument
     t_double *inR = ins[1];
-    t_double *out = outs[0];    // we get audio for each outlet of the object from the **outs argument
+    t_double *outL = outs[0];    // we get audio for each outlet of the object from the **outs argument
+    t_double *outR = outs[1];
 
-    t_double ftmp;
+    t_double ftmpL;
+    t_double ftmpR;
 
     // this perform method simply copies the input to the output, offsetting the value
     while (sampleframes--) {
-        ftmp = *inL++ * *inR++;
-        FIX_DENORM_NAN_DOUBLE(ftmp);
-        *out++ = ftmp;
+        //  mult two signals
+        ftmpL = *inL++ * *inR++;
+        FIX_DENORM_NAN_DOUBLE(ftmpL);
+        *outL++ = ftmpL;
+        
+        //  add two signals
+        ftmpR = *inL++ + *inR++;
+        FIX_DENORM_NAN_DOUBLE(ftmpR);
+        *outR++ = ftmpR;
+
     }
 }
 
