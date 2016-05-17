@@ -41,7 +41,7 @@ Verify the project Info and Build *Settings*. The first step would be to create 
 | Product Version      | 7.0.1                                                                             |
 
 The `maxmspsdk.xconfig` file should automatically link theses paths to the rest of the *Settings*.     
-If issues persist, compare your *Settings* to that of an example in the Max SDK folder : /Max 7/Packages/max-sdk-7.1.0/source
+If issues persist, compare your *Settings* to that of an example in the Max SDK folder : ``/Max 7/Packages/max-sdk-7.1.0/source``
 
 ### Visual Studio
 
