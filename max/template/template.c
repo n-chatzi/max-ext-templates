@@ -35,6 +35,12 @@
  *          - Max/MSP SDK dummy & simplemax by jeremy bernstein - jeremy@bootsquad.com :
  *              https://github.com/Cycling74/max-sdk/tree/master/source/basics/template
  *
+ *
+ *  This object has two inlets and two outlets.
+ *  The left outlet multiplies the inlets.
+ *  The right outlet adds the inlets.
+ *
+ *
  */
 
 //____________________________________________________________________
@@ -74,10 +80,12 @@
 typedef struct _template	///<	A struct to hold data for our object
 {
     t_object    obj;        ///<	The object itself (t_object in Max instead of t_object for MSP)
-    t_atom      val;        ///<	Value to use for the processing
-    t_symbol    name;       ///<    Name of the Max objct
-    void        *out0;      ///<    Output definition
-    void        *out1;      ///<    Output definition
+    t_atom      val_0;      ///<	Value to use for inlet 0
+    t_atom      val_1;      ///<	Value to use for inlet 1
+    void        *proxy;     ///<    A proxy is a small object that controls an inlet, but does not translate the message it receives. The advantage of proxies over regular inlets is that your object can respond to any message in all of its inlets.
+    t_symbol    name;       ///<    Name of the Max object
+    void        *out_0;     ///<    Output definition
+    void        *out_1;     ///<    Output definition
 
 } t_template;
 
@@ -151,6 +159,8 @@ void ext_main(void *r)
     class_addmethod(c, (method)template_in0,        "int",      A_LONG, 0);
     class_addmethod(c, (method)template_in1,        "in0",      A_LONG, 0);
     
+    x->proxy = proxy_new((t_object *)x, 1, &x->val_0);
+    
     CLASS_ATTR_SYM(c, "name", 0, t_template, name);
     
     //  adds this class to the CLASS_BOX name space, meaning that it will be searched when a user tries to type it into a box.
@@ -175,11 +185,15 @@ void *template_new(t_symbol *s, long argc, t_atom *argv)
     //Setup the custom struct for our object
     t_template *x = (t_template *) object_alloc((t_class *) template_class);
     
-    //Setup 2 inlets for our object
+    //Setup the 2nd inlets for our object
+    intin(x, 1);
     
-    //Give our object a signal outlet
-    outlet_new((t_object *)x, "signal");
-    
+    //Give our object two outlets
+    // x->out0 = intout((t_object *)x);
+    // Theses outlets are type-specific, meaning that we will always send the same type of message through them. If you want to create outlets that can send any message, use outlet_new().
+    outlet_new((t_object *)x, NULL);    //NULL indicates the outlet will be used to send various messages
+    x->out_0 = intout((t_object *)x);
+    x->out_1 = intout((t_object *)x);
     
     return (x);
 }
@@ -245,31 +259,44 @@ void template_in1( t_template *x, long n)
 //This simply copies the value of the argument to the internal storage within the instance.
 void template_int(t_template *x, long n)
 {
-    atom_setlong(&x->val, n);
+    switch (proxy_getinlet((t_object *)x)) {
+        case 0:
+            atom_setlong(&x->val_0, n);
+            break;
+        case 1:
+            atom_setlong(&x->val_1, n);
+            break;
+    }
     template_bang(x);
 }
 
 //This simply copies the value of the argument to the internal storage within the instance.
 void template_float(t_template *x, double f)
 {
-    atom_setfloat(&x->val, f);
+    switch (proxy_getinlet((t_object *)x)) {
+        case 0:
+            atom_setfloat(&x->val_0, f);
+            break;
+        case 1:
+            atom_setfloat(&x->val_1, f);
+            break;
+    }
     template_bang(x);
 }
 
 void template_bang(t_template *x)
 {
-    switch (x->val.a_type) {
+    switch (x->val_0.a_type) {
         case A_LONG:
-            outlet_int(x->out0, atom_getlong(&x->val));
-            outlet_int(x->out1, atom_getlong(&x->val));
+            outlet_int(x->out_0, atom_getlong(&x->val_0) * atom_getlong(&x->val_1));
+            outlet_int(x->out_1, atom_getlong(&x->val_0) + atom_getlong(&x->val_1));
             break;
         case A_FLOAT:
-            outlet_float(x->out0, atom_getfloat(&x->val));
-            outlet_float(x->out1, atom_getfloat(&x->val));
+            outlet_float(x->out_0, atom_getfloat(&x->val_0) * atom_getfloat(&x->val_1));
+            outlet_float(x->out_1, atom_getfloat(&x->val_0) + atom_getfloat(&x->val_1));
             break;
         case A_SYM:
-            outlet_anything(x->out0, atom_getsym(&x->val), 0, NULL);
-            outlet_anything(x->out1, atom_getsym(&x->val), 0, NULL);
+            object_post((t_object *)x, "i see symbols");
             break;
         default: break;
     }
