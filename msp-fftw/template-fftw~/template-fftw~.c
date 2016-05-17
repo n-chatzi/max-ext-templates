@@ -1,6 +1,6 @@
 /**
  *
- *  @file	template.c
+ *  @file	template~.c
  *
  *
  *  Sources :
@@ -44,6 +44,7 @@
 
 #include "ext.h"            // should always be first, then ext_obex.h + other files.
 #include "ext_obex.h"		// required for "new" style objects
+#include "z_dsp.h"			// required for MSP objects
 
 
 
@@ -122,7 +123,7 @@ void ext_main(void *r)
     // your custom free function.
     
     // creates a class with the new instance routine (see below), a free function (in this case there isn't one, so we pass NULL), the size of the structure, a no-longer used argument, and then a description of the arguments you type when creating an instance (in this case, there are no arguments, so we pass 0).
-    t_class *c = class_new("template", (method)template_new, (method)dsp_free, (long)sizeof(t_template), 0L, A_GIMME, 0);
+    t_class *c = class_new("template~", (method)template_new, (method)dsp_free, (long)sizeof(t_template), 0L, A_GIMME, 0);
     
     //binds a C function to a text symbol. The two methods defined here are int and bang.
     class_addmethod(c, (method)template_bang,       "bang",             0);
@@ -167,6 +168,7 @@ void *template_new(t_symbol *s, long argc, t_atom *argv)
     
     //Give our object a signal outlet
     outlet_new((t_pxobject *)x, "signal");
+    outlet_new((t_pxobject *)x, "signal");
     
     // splatted in _dsp method if optimizations are on
     x->x_val = argc;
@@ -181,7 +183,7 @@ void template_free(t_template *x)
 }
 
 //Documentation shown when hovering over an inlet/outlet
-//template: sprintf content here
+//template~: sprintf content here
 void template_assist(t_template *x, void *b, long m, long a, char *s)
 {
     if (m == ASSIST_INLET) {
@@ -191,11 +193,11 @@ void template_assist(t_template *x, void *b, long m, long a, char *s)
             case 1: sprintf(s, "(Signal) Right Input"); break;
         }
     }
-    else {
+    else if (m == ASSIST_OUTLET) {
         // outlet
         switch (a){
-            case 2: sprintf(s, "(Signal) Left Output"); break;
-            case 3: sprintf(s, "(Signal) Right Output"); break;
+            case 0: sprintf(s, "(Signal) Left Output  : L*R"); break;
+            case 1: sprintf(s, "(Signal) Right Output : L+R"); break;
         }
     }
 }
@@ -283,15 +285,24 @@ void template_perform64(t_template *x, t_object *dsp64, double **ins, long numin
 {
     t_double *inL = ins[0];     // we get audio for each inlet of the object from the **ins argument
     t_double *inR = ins[1];
-    t_double *out = outs[0];    // we get audio for each outlet of the object from the **outs argument
+    t_double *outL = outs[0];    // we get audio for each outlet of the object from the **outs argument
+    t_double *outR = outs[1];
 
-    t_double ftmp;
+    t_double ftmpL;
+    t_double ftmpR;
 
     // this perform method simply copies the input to the output, offsetting the value
     while (sampleframes--) {
-        ftmp = *inL++ * *inR++;
-        FIX_DENORM_NAN_DOUBLE(ftmp);
-        *out++ = ftmp;
+        //  mult two signals
+        ftmpL = *inL * *inR;
+        FIX_DENORM_NAN_DOUBLE(ftmpL);
+        *outL++ = ftmpL;
+        
+        //  add two signals
+        ftmpR = *inL++ + *inR++;
+        FIX_DENORM_NAN_DOUBLE(ftmpR);
+        *outR++ = ftmpR;
+
     }
 }
 
