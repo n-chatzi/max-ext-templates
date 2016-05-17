@@ -245,18 +245,34 @@ void template_in1( t_template *x, long n)
 //This simply copies the value of the argument to the internal storage within the instance.
 void template_int(t_template *x, long n)
 {
-    x-> val = n;
+    atom_setlong(&x->val, n);
+    template_bang(x);
 }
 
 //This simply copies the value of the argument to the internal storage within the instance.
 void template_float(t_template *x, double f)
 {
-    x-> val = f;
+    atom_setfloat(&x->val, f);
+    template_bang(x);
 }
 
 void template_bang(t_template *x)
 {
-    post("value is %ld",x->x_val);
+    switch (x->val.a_type) {
+        case A_LONG:
+            outlet_int(x->out0, atom_getlong(&x->val));
+            outlet_int(x->out1, atom_getlong(&x->val));
+            break;
+        case A_FLOAT:
+            outlet_float(x->out0, atom_getfloat(&x->val));
+            outlet_float(x->out1, atom_getfloat(&x->val));
+            break;
+        case A_SYM:
+            outlet_anything(x->out0, atom_getsym(&x->val), 0, NULL);
+            outlet_anything(x->out1, atom_getsym(&x->val), 0, NULL);
+            break;
+        default: break;
+    }
 }
 
 
@@ -266,7 +282,20 @@ void template_bang(t_template *x)
 //____________________________________________________________________
 //                          Perfomance Routines
 //____________________________________________________________________
+void template_anything(t_template *x, t_symbol *s, long ac, t_atom *av)
+{
+    
+}
 
+void template_identify(t_template *x)
+{
+    object_post((t_object *)x, "my name is %s", x->name.s_name);
+}
+
+void template_dblclick(t_template *x)
+{
+    object_post((t_object *)x, "I got a double-click");
+}
 
 
 
