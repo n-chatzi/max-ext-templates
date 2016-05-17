@@ -73,7 +73,7 @@
 // Basic Max objects are declared as C structures. The first element of the structure is a t_object, followed by whatever you want. The example below has one long structure member.
 typedef struct _template	///<	A struct to hold data for our object
 {
-    t_pxobject x_obj;       ///<	The object itself (t_pxobject in MSP instead of t_object)
+    t_object x_obj;         ///<	The object itself (t_object in Max instead of t_pxobject for MSP)
     t_float x_val;          ///<	Value to use for the processing
     void *x_output;         ///<    Output definition
 
