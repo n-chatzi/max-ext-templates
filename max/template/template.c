@@ -197,15 +197,15 @@ void template_assist(t_template *x, void *b, long m, long a, char *s)
     if (m == ASSIST_INLET) {
         //inlet
         switch (a){
-            case 0: sprintf(s, "(Signal) Left Input"); break;
-            case 1: sprintf(s, "(Signal) Right Input"); break;
+            case 0: sprintf(s, "Input 0 : value 1"); break;
+            case 1: sprintf(s, "Input 1 : value 2"); break;
         }
     }
     else {
         // outlet
         switch (a){
-            case 2: sprintf(s, "(Signal) Left Output"); break;
-            case 3: sprintf(s, "(Signal) Right Output"); break;
+            case 0: sprintf(s, "Output 0 : Mult"); break;
+            case 1: sprintf(s, "Output 1 : Add"); break;
         }
     }
 }
