@@ -35,6 +35,12 @@
  *          - Max/MSP SDK times~ :
  *              https://github.com/Cycling74/max-sdk/tree/master/source/audio/times~
  *
+ *
+ *
+ *  This object has two inlets and two outlets.
+ *  The left outlet multiplies the inlets.
+ *  The right outlet adds the inlets.
+ *
  */
 
 //____________________________________________________________________
