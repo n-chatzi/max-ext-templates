@@ -193,11 +193,11 @@ void template_assist(t_template *x, void *b, long m, long a, char *s)
             case 1: sprintf(s, "(Signal) Right Input"); break;
         }
     }
-    else {
+    else if (m == ASSIST_OUTLET) {
         // outlet
         switch (a){
-            case 2: sprintf(s, "(Signal) Left Output  : L*R"); break;
-            case 3: sprintf(s, "(Signal) Right Output : L+R"); break;
+            case 0: sprintf(s, "(Signal) Left Output  : L*R"); break;
+            case 1: sprintf(s, "(Signal) Right Output : L+R"); break;
         }
     }
 }
