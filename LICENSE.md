@@ -53,7 +53,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
  VERSION 0.3: Fix sensitivity to buffer initialization
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
- ## FFTW
+## FFTW
 
  GNU GENERAL PUBLIC LICENSE
     Version 2, June 1991
