@@ -294,7 +294,7 @@ void template_perform64(t_template *x, t_object *dsp64, double **ins, long numin
     // this perform method simply copies the input to the output, offsetting the value
     while (sampleframes--) {
         //  mult two signals
-        ftmpL = *inL++ * *inR++;
+        ftmpL = *inL * *inR;
         FIX_DENORM_NAN_DOUBLE(ftmpL);
         *outL++ = ftmpL;
         
