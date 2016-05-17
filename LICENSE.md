@@ -1,7 +1,7 @@
 # Licenses
 
 Certain parts of the templates are derived from Cycling74 and CNMAT. Furthermore, fftw3.h is included.    
-With respect and gratitude for their work, here are their licenses. 
+With respect and gratitude for their work, here are their licenses.
 
 ## Cycling '74
 
