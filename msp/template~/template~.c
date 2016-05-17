@@ -5,23 +5,35 @@
  *
  *  Sources :
  *
- *   Cylcing 74'
- *    - Max 7.1 API :
- *          https://cycling74.com/sdk/MaxSDK-6.0.4/html/index.html
+ *  Documentation :
+ *      Cylcing 74'
+ *          - Max 7.1 API :
+ *              https://cycling74.com/sdk/MaxSDK-6.0.4/html/index.html
  *
- *    - Max/MSP 7.1 SDK examples :
- *          https://cycling74.com/downloads/sdk/#.Vzn0OpPbugw
+ *          - Max/MSP 7.1 SDK examples :
+ *              https://cycling74.com/downloads/sdk/#.Vzn0OpPbugw
  *
- *    - Writing External Objects for Max 4.0 and MSP 2.0 (written by David Zicarelli) :
- *          http://peabody.sapp.org/class/dmp2/read/WritingMax_MSPExternals.pdf
+ *          - Writing External Objects for Max 4.0 and MSP 2.0 (written by David Zicarelli) :
+ *              http://peabody.sapp.org/class/dmp2/read/WritingMax_MSPExternals.pdf
  *
- *   Ichiro Fujinaga
- *    - Max/MSP Externals Tutorial :
- *          http://www.music.mcgill.ca/~ich/classes/mumt402_06/MaxMSPExternalsTutorials/MaxMSPExternalsTutorial3.2.pdf
+ *      Ichiro Fujinaga
+ *          - Max/MSP Externals Tutorial :
+ *              http://www.music.mcgill.ca/~ich/classes/mumt402_06/MaxMSPExternalsTutorials/MaxMSPExternalsTutorial3.2.pdf
  *
- *   Beoit Bouchez
- *    - Writing-MaxMSP-Externals-on-Windows :
- *          http://1cyjknyddcx62agyb002-c74projects.s3.amazonaws.com/files/2013/11/Writing-MaxMSP-Externals-on-Windows.pdf
+ *      Beoit Bouchez
+ *          - Writing-MaxMSP-Externals-on-Windows :
+ *              http://1cyjknyddcx62agyb002-c74projects.s3.amazonaws.com/files/2013/11/Writing-MaxMSP-Externals-on-Windows.pdf
+ *
+ *
+ *  Code :
+ *
+ *      Kingsley
+ *          - Kingsley’s guide to basic max object programming.
+ *               http://bb-attachments.cycling74.com.s3.amazonaws.com/2169.kingsleysmaxobjectprogrammingguide.doc
+ *
+ *      Cylcing 74'
+ *          - Max/MSP SDK times~ :
+ *              https://github.com/Cycling74/max-sdk/tree/master/source/audio/times~
  *
  */
 
