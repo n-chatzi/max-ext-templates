@@ -44,12 +44,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
  MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@   
- NAME: firbank~
- DESCRIPTION: Implements optimized real FFT convolution of one ore more inputs and a bank of FIR filters using the overlap-save method.
- AUTHORS: Andy Schmeder
- COPYRIGHT_YEARS: 2008
- VERSION 0.1: Initial release
- VERSION 0.2: Fixed operation with multiple inputs
+ NAME: firbank~   
+ DESCRIPTION: Implements optimized real FFT convolution of one ore more inputs and a bank of FIR filters using the overlap-save method.   
+ AUTHORS: Andy Schmeder   
+ COPYRIGHT_YEARS: 2008    
+ VERSION 0.1: Initial release   
+ VERSION 0.2: Fixed operation with multiple inputs    
  VERSION 0.3: Fix sensitivity to buffer initialization
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
