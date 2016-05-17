@@ -27,6 +27,8 @@ The tilde indicates that object treats audio ( **MSP** ) as opposed to data ( **
 
 Remember to specify, in the ``DSTROOT`` field, the folder in which the external will be built.
 
+Once built, restart **Max** and test your object.
+
 ### Xcode
 
 Verify the project Info and Build *Settings*. The first step would be to create thee user defined *Settings* :
