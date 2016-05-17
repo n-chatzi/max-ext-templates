@@ -71,7 +71,7 @@
 
  */
 
-// Basic Max objects are declared as C structures. The first element of the structure is a t_object, followed by whatever you want. The example below has one long structure member.
+// Basic MSP objects are declared as C structures. The first element of the structure is a t_pxobject, followed by whatever you want. The example below has one long structure member.
 typedef struct _template	///<	A struct to hold data for our object
 {
     t_pxobject x_obj;       ///<	The object itself (t_pxobject in MSP instead of t_object)

@@ -45,7 +45,7 @@ If issues persist, compare your *Settings* to that of an example in the Max SDK 
 
 ### Visual Studio
 
-*in progress*
+*to be implemented*
 
 ## Notes
 
