@@ -25,8 +25,6 @@ Download the zipped file, extract and open the folder containing a specific proj
 
 The tilde indicates that object treats audio ( **MSP** ) as opposed to data ( **Max** ).
 
-Remember to specify, in the ``DSTROOT`` field, the folder in which the external will be built.
-
 Once built, restart **Max** and test your object.
 
 ### Xcode
@@ -40,7 +38,8 @@ Verify the project Info and Build *Settings*. The first step would be to create 
 | C74_SYM_LINKER_FLAGS | /Max 7/Packages/max-sdk-7.1.0/source/c74support/max-includes/c74_linker_flags.txt |
 | Product Version      | 7.0.1                                                                             |
 
-The `maxmspsdk.xconfig` file should automatically link theses paths to the rest of the *Settings*.     
+Remember to specify, in the ``DSTROOT`` field, the folder in which the external will be built.  
+The `maxmspsdk.xconfig` file should automatically link theses paths to the rest of the *Settings*.  
 If issues persist, compare your *Settings* to that of an example in the Max SDK folder : ``/Max 7/Packages/max-sdk-7.1.0/source``
 
 ### Visual Studio
