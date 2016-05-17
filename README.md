@@ -2,6 +2,8 @@
 
 Templates/basic examples, written in c, for creating **MSP** and **MSP** external objects.
 
+Most of the code and commentary is derived from sources that are cited, with there respective links, in the c files. 
+
 ## Prerequisites
 
 The Max/MSP SDK is required. Theses templates are made with [Max/MSP 7.1 SDK](https://cycling74.com/downloads/sdk/#.VzpdRpPbvdQ)
@@ -36,7 +38,8 @@ If issues persist, compare your *Settings* to that of an example in the Max SDK 
 
 ## Notes
 
->Currently only for XCode, but the c files can be reused in any IDE that is properly configured
+Currently only for XCode, but the c files can be reused in any IDE that is properly configured
+
 
 >Visual Studio version is in progress
 
