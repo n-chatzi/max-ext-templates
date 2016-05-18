@@ -2,7 +2,7 @@
 
 Templates/basic examples, written in ``c``, for creating **MSP** and **MSP** external objects.
 
-This serves as a synthesis of information for writing **Max/MSP** externals. It is a quick starting point for developing simple objects with a good dose of commentary. If you want to go further, the [Max API](https://cycling74.com/sdk/MaxSDK-6.0.4/html/index.html) is a great resource, as well as ther documents cited in the comments.
+This serves as a synthesis of information for writing **Max/MSP** externals. It is a quick starting point for developing simple objects with a good dose of commentary. If you want to go further, the [Max API](https://cycling74.com/sdk/MaxSDK-7.1.0/html/index.html) is a great resource, as well as ther documents cited in the comments.
 
 Most of the code and commentary is derived from sources that are cited, with there respective links, in the ``c`` files.
 
@@ -29,7 +29,7 @@ Once built, restart **Max** and test your object.
 
 ### Xcode
 
-Verify the project Info and Build *Settings*. The first step would be to create thee user defined *Settings* :
+Verify the project Info and Build *Settings*. If not present, the first step would be to create thee user defined *Settings* :
 
 
 | Name                 | Content                                                                           |
@@ -44,7 +44,16 @@ If issues persist, compare your *Settings* to that of an example in the Max SDK 
 
 ### Visual Studio
 
-*to be implemented*
+Verify the following settings for the project in the *Properties* of the *Debug* section.
+
+Choose All Configurations in the Configuration drop-down menu and check the following values :
+- Configuration Properties  
+-- Output Directory : the path in which the .mxe will be built
+
+- C/C++   
+-- Additional Include Directories : this should be the path to max-includes, msp-includes, jit-includes. They can be found here max-sdk-7.1.0\source\c74support
+
+
 
 ## Notes
 
