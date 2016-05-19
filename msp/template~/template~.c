@@ -151,7 +151,7 @@ void ext_main(void *r)
     class_addmethod(c, (method)template_assist,     "assist",	A_CANT, 0);
     
     class_addmethod(c, (method)template_in0,        "int",      A_LONG, 0);
-    class_addmethod(c, (method)template_in1,        "in0",      A_LONG, 0);
+    class_addmethod(c, (method)template_in1,        "in1",      A_LONG, 0);
     
     // if the filename on disk is different from the object name in Max, ex. w/ times
 //  class_setname("*~","times~");
@@ -255,7 +255,7 @@ void template_in1( t_template *x, long n)
 //This simply copies the value of the argument to the internal storage within the instance.
 void template_int(t_template *x, long n)
 {
-    x-> x_val = n;
+    template_float(x, n);
 }
 
 //This simply copies the value of the argument to the internal storage within the instance.
@@ -266,7 +266,7 @@ void template_float(t_template *x, double f)
 
 void template_bang(t_template *x)
 {
-    post("value is %ld",x->x_val);
+    object_post((t_object *)x, "value is %ld",x->x_val);
 }
 
 
