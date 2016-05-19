@@ -80,6 +80,7 @@
 typedef struct _template	///<	A struct to hold data for our object
 {
     t_object    obj;        ///<	The object itself (t_object in Max instead of t_object for MSP)
+    t_atom      val;        ///<    Value to use for argument
     t_atom      val_0;      ///<	Value to use for inlet 0
     t_atom      val_1;      ///<	Value to use for inlet 1
     void        *proxy;     ///<    A proxy is a small object that controls an inlet, but does not translate the message it receives. The advantage of proxies over regular inlets is that your object can respond to any message in all of its inlets.
@@ -143,7 +144,8 @@ void ext_main(void *r)
 {
     // object initialization
     // creates a class with the new instance routine (see below), a free function (in this case there isn't one, so we pass NULL), the size of the structure, a no-longer used argument, and then a description of the arguments you type when creating an instance (in this case, there are no arguments, so we pass 0).
-    t_class *c = class_new("template", (method)template_new, (method)template_free, (long)sizeof(t_template), 0L, A_GIMME, 0);
+    t_class *c ;
+    c = class_new("template", (method)template_new, (method)template_free, (long)sizeof(t_template), 0L, A_GIMME, 0);
     
     //binds a C function to a text symbol. The two methods defined here are int and bang.
     class_addmethod(c, (method)template_bang,       "bang",             0);
@@ -158,7 +160,7 @@ void ext_main(void *r)
     class_addmethod(c, (method)template_identify,   "identify",         0);
     
     class_addmethod(c, (method)template_in0,        "int",      A_LONG, 0);
-    class_addmethod(c, (method)template_in1,        "in0",      A_LONG, 0);
+    class_addmethod(c, (method)template_in1,        "in1",      A_LONG, 0);
     
     CLASS_ATTR_SYM(c, "name", 0, t_template, name);
     
@@ -184,18 +186,18 @@ void *template_new(t_symbol *s, long argc, t_atom *argv)
     //Setup the custom struct for our object
     t_template *x = (t_template *) object_alloc((t_class *) template_class);
     
-    //Setup the 2nd inlets for our object
-    intin(x, 1);
-    
     //Give our object two outlets
     // x->out0 = intout((t_object *)x);
     // Theses outlets are type-specific, meaning that we will always send the same type of message through them. If you want to create outlets that can send any message, use outlet_new().
-    outlet_new((t_object *)x, NULL);    //NULL indicates the outlet will be used to send various messages
-    x->out_0 = intout((t_object *)x);
-    x->out_1 = intout((t_object *)x);
+    //outlet_new((t_object *)x, NULL);    //NULL indicates the outlet will be used to send various messages
+    x->out_0 = floatout((t_object *)x);
+    x->out_1 = floatout((t_object *)x);
     
     // passing your object, a non-zero code value associated with the proxy, and a pointer to your object's inlet number location.
+    // additonally this also creates the second inlet (i.e. inlet 1)
     x->proxy = proxy_new((t_object *) x, 1, &x->in_n);
+    // to make more inlets use :$
+    intin(x, 1);
     
     return (x);
 }
@@ -234,14 +236,18 @@ void template_assist(t_template *x, void *b, long m, long a, char *s)
 //                          Inlet Handlers
 //____________________________________________________________________
 
-void template_in0( t_template *x, long n)
+// posts messages upon reception
+void template_in0(t_template *x, long n)
 {
     object_post((t_object *)x, "in 0 got : %ld", n);
+    atom_setlong(&x->val_0, n);
 }
 
-void template_in1( t_template *x, long n)
+void template_in1(t_template *x, long n)
 {
     object_post((t_object *)x, "in 1 got : %ld", n);
+    atom_setlong(&x->val_1, n);
+
 }
 
 
@@ -258,34 +264,39 @@ void template_in1( t_template *x, long n)
  
  */
 
-//This simply copies the value of the argument to the internal storage within the instance.
+//This simply copies the value of the argument to the internal storage within the instance. It stores it in one of the two values depending on which inlets the value was sent to. The bang function is then called, thus sending the values to the output
 void template_int(t_template *x, long n)
 {
     switch (proxy_getinlet((t_object *)x)) {
         case 0:
             atom_setlong(&x->val_0, n);
+            post("int received in left inlet");
             break;
         case 1:
             atom_setlong(&x->val_1, n);
+            post("int received in left inlet");
             break;
     }
     template_bang(x);
 }
 
-//This simply copies the value of the argument to the internal storage within the instance.
+// Identical to previous function, used upon reception of float values.
 void template_float(t_template *x, double f)
 {
     switch (proxy_getinlet((t_object *)x)) {
         case 0:
-            atom_setfloat(&x->val_0, f);
+            atom_setlong(&x->val_0, f);
+            post("float received in left inlet");
             break;
         case 1:
-            atom_setfloat(&x->val_1, f);
+            atom_setlong(&x->val_1, f);
+            post("float received in left inlet");
             break;
     }
     template_bang(x);
 }
 
+// Function called upon reception of a bang on an inlet. Outputs values.
 void template_bang(t_template *x)
 {
     switch (x->val_0.a_type) {
@@ -298,7 +309,7 @@ void template_bang(t_template *x)
             outlet_float(x->out_1, atom_getfloat(&x->val_0) + atom_getfloat(&x->val_1));
             break;
         case A_SYM:
-            object_post((t_object *)x, "i see symbols");
+            object_post((t_object *)x, "i see symbols... not numbers");
             break;
         default: break;
     }
@@ -313,7 +324,8 @@ void template_bang(t_template *x)
 //____________________________________________________________________
 void template_anything(t_template *x, t_symbol *s, long ac, t_atom *av)
 {
-    
+    atom_setsym(&x->val_0, s);
+    template_bang(x);
 }
 
 void template_identify(t_template *x)
@@ -323,7 +335,8 @@ void template_identify(t_template *x)
 
 void template_dblclick(t_template *x)
 {
-    object_post((t_object *)x, "I got a double-click");
+    object_post((t_object *)x, "Here you go : ");
+    template_bang(x);
 }
 
 
