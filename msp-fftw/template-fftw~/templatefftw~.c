@@ -66,9 +66,10 @@
 // Basic Max objects are declared as C structures. The first element of the structure is a t_object, followed by whatever you want. The example below has one long structure member.
 typedef struct _templatefftw	///<	A struct to hold data for our object
 {
-    t_pxobject x_obj;       ///<	The object itself (t_pxobject in MSP instead of t_object)
-    t_float x_val;          ///<	Value to use for the processing
-    void *x_output;         ///<    Output definition
+    t_pxobject  x_obj;          ///<	The object itself (t_pxobject in MSP instead of t_object)
+    t_float     x_val;          ///<	Value to use for the processing
+    t_bool      fftOn;          ///<    Turns on/off the FFT
+    void        *x_output;      ///<    Output definition
 
 } t_templatefftw;
 
@@ -100,7 +101,8 @@ void templatefftw_in1( t_templatefftw *x, long n);      //2nd inlet
 //// performance set
 void templatefftw_dsp64(t_templatefftw *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);
 void templatefftw_perform64(t_templatefftw *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
-void templatefftw_basicfft(t_templatefftw *x, long N);
+void templatefftw_basicfft(t_templatefftw *x, long N, double **ins);
+void templatefftw_dblclick(t_templatefftw *x);
 
 
 
@@ -127,9 +129,11 @@ void ext_main(void *r)
     // your custom free function.
     
     // creates a class with the new instance routine (see below), a free function (in this case there isn't one, so we pass NULL), the size of the structure, a no-longer used argument, and then a description of the arguments you type when creating an instance (in this case, there are no arguments, so we pass 0).
-    t_class *c = class_new("templatefftw~", (method)templatefftw_new, (method)dsp_free, (long)sizeof(t_templatefftw), 0L, A_GIMME, 0);
+    t_class *c;
     
-    //binds a C function to a text symbol. The two methods defined here are int and bang.
+    c = class_new("templatefftw~", (method)templatefftw_new, (method)dsp_free, (long)sizeof(t_templatefftw), 0L, A_GIMME, 0);
+    
+    //binds a C function to a text symbol.
     class_addmethod(c, (method)templatefftw_bang,       "bang",             0);
     class_addmethod(c, (method)templatefftw_int,        "int",      A_LONG, 0);
     class_addmethod(c, (method)templatefftw_float,		"float",	A_FLOAT,0);
@@ -138,6 +142,7 @@ void ext_main(void *r)
     
     class_addmethod(c, (method)templatefftw_in0,        "int",      A_LONG, 0);
     class_addmethod(c, (method)templatefftw_in1,        "in0",      A_LONG, 0);
+    class_addmethod(c, (method)templatefftw_dblclick,    "dblclick",  A_CANT, 0);
     
     // if the filename on disk is different from the object name in Max, ex. w/ times
 //  class_setname("*~","times~");
@@ -252,10 +257,17 @@ void templatefftw_float(t_templatefftw *x, double f)
 
 void templatefftw_bang(t_templatefftw *x)
 {
-    post("value is %ld",x->x_val);
+    object_post((t_object *)x, "value is %ld",x->x_val);
 }
 
+void templatefftw_dblclick(t_templatefftw *x)
+{
+    object_post((t_object *)x, "about to fft");
+    x-> fftOn = true;
+}
 
+// Note object_post will print text to the Max window, it is linked to an instance of your object
+// While post(C74_CONST char *) is static, thus not linked ot a specific instance
 
 
 
@@ -265,9 +277,12 @@ void templatefftw_bang(t_templatefftw *x)
 
 // registers a function for the signal chain in Max
 // Calls the appropriate functions to do the processing
+/*
+ The dsp64 method specifies the signal processing function your object defines along with its arguments. Your object's dsp64 method will be called when the MSP signal compiler is building a sequence of operations (known as the DSP Chain) that will be performed on each set of audio samples. The operation sequence consists of a pointers to functions (called perform routines) followed by arguments to those functions.
+ */
 void templatefftw_dsp64(t_templatefftw *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
 {
-    post("my sample rate is: %f", samplerate);
+    object_post((t_object *)x, "my sample rate is: %f", samplerate);
     
     /* 
         instead of calling dsp_add(), we send the "dsp_add64" message to the object representing the dsp chain
@@ -285,6 +300,9 @@ void templatefftw_dsp64(t_templatefftw *x, t_object *dsp64, short *count, double
 
 // this is the 64-bit perform method audio vectors
 // Perform processing on signal & float connected to inlets
+/*
+ The perform routine is not a "method" in the traditional sense. It will be called within the callback of an audio driver, which, unless the user is employing the Non-Real Time audio driver, will typically be in a high-priority thread. Thread protection inside the perform routine is minimal. You can use a clock, but you cannot use qelems or outlets.
+ */
 void templatefftw_perform64(t_templatefftw *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
     t_double *inL = ins[0];     // we get audio for each inlet of the object from the **ins argument
@@ -295,6 +313,12 @@ void templatefftw_perform64(t_templatefftw *x, t_object *dsp64, double **ins, lo
     t_double ftmpL;
     t_double ftmpR;
 
+    if (x->fftOn) {
+        templatefftw_basicfft(x, 256, ins);
+        object_post((t_object *)x, "i just ffted");
+        x->fftOn = false;
+    }
+    
     // this perform method simply copies the input to the output, offsetting the value
     while (sampleframes--) {
         //  mult two signals
@@ -318,8 +342,10 @@ void templatefftw_perform64(t_templatefftw *x, t_object *dsp64, double **ins, lo
 //                          FFT Routines
 //____________________________________________________________________
 
-void templatefftw_basicfft(t_templatefftw *x, long N)
+void templatefftw_basicfft(t_templatefftw *x, long N, double **ins)
 {
+    t_double *inL = ins[0];
+    
     fftw_complex    *data;      // audio samples/data
     fftw_complex    *fft_out;   // result of the forward plan, i.e. the FFT
     fftw_complex    *ifft_out;  // result of the backward plan, i.e. the iFFT
@@ -351,20 +377,23 @@ void templatefftw_basicfft(t_templatefftw *x, long N)
      Note : 
       - Once the plan has been created you can use it as many as times as you like to transform the specified i/o arrays (w/fftw_execute(fftw_plan p)).
       - If you want to transform a different array of the ame size, you can create a new plan w/fftw_plan_dft_1d and FFTW automatically reuses the info from previous plan when possible.
+     - FFTW also provides two routines for creating plans for 2d and 3d transforms, and one routine for creating plans of arbitrary dimensionality.
      */
     p_forw = fftw_plan_dft_1d(N, data,      fft_out,    FFTW_FORWARD,   FFTW_ESTIMATE);
     p_back = fftw_plan_dft_1d(N, fft_out,   ifft_out,   FFTW_BACKWARD,  FFTW_ESTIMATE);
     
     for( i = 0 ; i < N ; i++ ) {
-        data[i][0] = 1.0; // stick your audio samples in here
+        data[i][0] = *inL;
         data[i][1] = 0.0; // use this if your data is complex valued
     }
     
     
     for( i = 0 ; i < N ; i++ ) {
-        fprintf( stdout, "data[%d] = { %2.2f, %2.2f }\n",
+        object_post((t_object *)x, "data[%d] = { %2.2f, %2.2f }\n",
                 i, data[i][0], data[i][1] );
     }
+    
+    object_post((t_object *)x, "________________________________________________________");
     
     // Compute transform
     /*
@@ -376,15 +405,16 @@ void templatefftw_basicfft(t_templatefftw *x, long N)
     fftw_execute(p_forw);
     
     for( i = 0 ; i < N ; i++ ) {
-        fprintf( stdout, "fft_result[%d] = { %2.2f, %2.2f }\n",
+        object_post((t_object *)x, "fft_result[%d] = { %2.2f, %2.2f }\n",
                 i, fft_out[i][0], fft_out[i][1] );
     }
     
+    object_post((t_object *)x, "________________________________________________________");
     
     fftw_execute(p_back);
     
     for( i = 0 ; i < N ; i++ ) {
-        fprintf( stdout, "ifft_result[%d] = { %2.2f, %2.2f }\n",
+        object_post((t_object *)x, "ifft_result[%d] = { %2.2f, %2.2f }\n",
                 i, ifft_out[i][0] / N, ifft_out[i][1] / N );
     }
 
