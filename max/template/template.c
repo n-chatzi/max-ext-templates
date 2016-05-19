@@ -154,7 +154,7 @@ void ext_main(void *r)
     
     class_addmethod(c, (method)template_assist,     "assist",	A_CANT, 0);
     class_addmethod(c, (method)template_anything,   "anything", A_GIMME, 0);
-    class_addmethod(c, (method)template_dblclick,   "dbclick",  A_CANT, 0);
+    class_addmethod(c, (method)template_dblclick,   "dblclick",  A_CANT, 0);
     
     //Add a new attribute to the specified attribute to specify that it should appear in the inspector's Basic tab.
     class_addmethod(c, (method)template_identify,   "identify",         0);
