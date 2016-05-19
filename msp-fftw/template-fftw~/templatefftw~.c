@@ -96,7 +96,6 @@ void templatefftw_bang( t_templatefftw *x);
 
 //// additional inlet behavious
 void templatefftw_in0( t_templatefftw *x, long n);      //1st inlet
-void templatefftw_in1( t_templatefftw *x, long n);      //2nd inlet
 
 //// performance set
 void templatefftw_dsp64(t_templatefftw *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);
@@ -147,7 +146,6 @@ void ext_main(void *r)
     // A_GIMME  raw list of atoms, since mutliple A_FLOAT should be avoided (cf. MaxAPI), A_GIMME should be used for more than four arguments or with multiple floating-point arguments
     // A_CANT   used when we cannot type check the argument
     class_addmethod(c, (method)templatefftw_in0,        "int",      A_LONG, 0);
-    class_addmethod(c, (method)templatefftw_in1,        "in0",      A_LONG, 0);
     class_addmethod(c, (method)templatefftw_dblclick,   "dblclick", A_CANT, 0);
     
     // if the filename on disk is different from the object name in Max, ex. w/ times
@@ -178,11 +176,10 @@ void *templatefftw_new(t_symbol *s, long argc, t_atom *argv)
     //Setup the custom struct for our object
     t_templatefftw *x = (t_templatefftw *) object_alloc((t_class *) templatefftw_class);
     
-    //Setup 2 inlets for our object
-    dsp_setup((t_pxobject *)x, 2);
+    //Setup 1 inlet for our object
+    dsp_setup((t_pxobject *)x, 1);
     
     //Give our object a signal outlet
-    outlet_new((t_pxobject *)x, "signal");
     outlet_new((t_pxobject *)x, "signal");
     
     // splatted in _dsp method if optimizations are on
@@ -204,15 +201,13 @@ void templatefftw_assist(t_templatefftw *x, void *b, long m, long a, char *s)
     if (m == ASSIST_INLET) {
         //inlet
         switch (a){
-            case 0: sprintf(s, "(Signal) Left Input"); break;
-            case 1: sprintf(s, "(Signal) Right Input"); break;
+            case 0: sprintf(s, "(Signal) Input; gets signal"); break;
         }
     }
     else if (m == ASSIST_OUTLET) {
         // outlet
         switch (a){
-            case 0: sprintf(s, "(Signal) Left Output  : L*R"); break;
-            case 1: sprintf(s, "(Signal) Right Output : L+R"); break;
+            case 0: sprintf(s, "(Signal) Output; passes signal"); break;
         }
     }
 }
@@ -229,12 +224,6 @@ void templatefftw_in0( t_templatefftw *x, long n)
 {
     object_post((t_object *)x, "in 0 got : %ld", n);
 }
-
-void templatefftw_in1( t_templatefftw *x, long n)
-{
-    object_post((t_object *)x, "in 1 got : %ld", n);
-}
-
 
 
 
@@ -311,13 +300,9 @@ void templatefftw_dsp64(t_templatefftw *x, t_object *dsp64, short *count, double
  */
 void templatefftw_perform64(t_templatefftw *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
-    t_double *inL = ins[0];     // we get audio for each inlet of the object from the **ins argument
-    t_double *inR = ins[1];
-    t_double *outL = outs[0];    // we get audio for each outlet of the object from the **outs argument
-    t_double *outR = outs[1];
-
-    t_double ftmpL;
-    t_double ftmpR;
+    t_double *in = ins[0];     // we get audio for each inlet of the object from the **ins argument
+    t_double *out = outs[0];    // we get audio for each outlet of the object from the **outs argument
+    t_double ftmp;
 
     if (x->fftOn) {
         templatefftw_basicfft(x, 256, ins);
@@ -328,15 +313,9 @@ void templatefftw_perform64(t_templatefftw *x, t_object *dsp64, double **ins, lo
     // this perform method simply copies the input to the output, offsetting the value
     while (sampleframes--) {
         //  mult two signals
-        ftmpL = *inL * *inR;
-        FIX_DENORM_NAN_DOUBLE(ftmpL);
-        *outL++ = ftmpL;
-        
-        //  add two signals
-        ftmpR = *inL++ + *inR++;
-        FIX_DENORM_NAN_DOUBLE(ftmpR);
-        *outR++ = ftmpR;
-
+        ftmp = *in++;
+        FIX_DENORM_NAN_DOUBLE(ftmp);
+        *out++ = ftmp;
     }
 }
 
