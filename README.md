@@ -53,7 +53,9 @@ Choose All Configurations in the Configuration drop-down menu and check the foll
 - C/C++   
 -- Additional Include Directories : this should be the path to max-includes, msp-includes, jit-includes. They can be found here max-sdk-7.1.0\source\c74support
 
+### FFTW
 
+To use the MSP template that use the FFTW library, you need to install [FFTW 3.3.4](http://www.fftw.org) which is the latest stable release. Then link it to your project on [Xcode](http://ofdsp.blogspot.fr/2011/07/installing-fftw3-with-xcode-and.html) or on [Windows](http://www.fftw.org/install/windows.html).
 
 ## Notes
 
