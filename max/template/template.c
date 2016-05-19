@@ -193,11 +193,12 @@ void *template_new(t_symbol *s, long argc, t_atom *argv)
     x->out_0 = floatout((t_object *)x);
     x->out_1 = floatout((t_object *)x);
     
-    // passing your object, a non-zero code value associated with the proxy, and a pointer to your object's inlet number location.
-    // additonally this also creates the second inlet (i.e. inlet 1)
-    x->proxy = proxy_new((t_object *) x, 1, &x->in_n);
-    // to make more inlets use :$
     intin(x, 1);
+
+    // passing your object, a non-zero code value associated with the proxy, and a pointer to your object's inlet number location.
+    // additonally this creates the second inlet (i.e. inlet 1)
+    //x->proxy = proxy_new((t_object *) x, 1, &x->in_n);
+    // to make more inlets use     intin(x, 2);
     
     return (x);
 }
@@ -267,6 +268,7 @@ void template_in1(t_template *x, long n)
 //This simply copies the value of the argument to the internal storage within the instance. It stores it in one of the two values depending on which inlets the value was sent to. The bang function is then called, thus sending the values to the output
 void template_int(t_template *x, long n)
 {
+    /*
     switch (proxy_getinlet((t_object *)x)) {
         case 0:
             atom_setlong(&x->val_0, n);
@@ -276,13 +278,13 @@ void template_int(t_template *x, long n)
             atom_setlong(&x->val_1, n);
             post("int received in left inlet");
             break;
-    }
+    }*/
     template_bang(x);
 }
 
 // Identical to previous function, used upon reception of float values.
 void template_float(t_template *x, double f)
-{
+{/*
     switch (proxy_getinlet((t_object *)x)) {
         case 0:
             atom_setlong(&x->val_0, f);
@@ -292,7 +294,7 @@ void template_float(t_template *x, double f)
             atom_setlong(&x->val_1, f);
             post("float received in left inlet");
             break;
-    }
+    }*/
     template_bang(x);
 }
 
