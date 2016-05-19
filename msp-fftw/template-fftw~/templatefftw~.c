@@ -315,13 +315,17 @@ void templatefftw_perform64(t_templatefftw *x, t_object *dsp64, double **ins, lo
 
 
 //____________________________________________________________________
-//                          Additional Routines
+//                          FFT Routines
 //____________________________________________________________________
 
 void templatefftw_basicfft(t_templatefftw *x, long N)
 {
-    fftw_complex *in, *out;
-    fftw_plan p;
+    fftw_complex    *data;      // audio samples/data
+    fftw_complex    *fft_out;   // result of the forward plan, i.e. the FFT
+    fftw_complex    *ifft_out;  // result of the backward plan, i.e. the iFFT
+    fftw_plan       p_forw;     // forward plan
+    fftw_plan       p_back;     // backward plan
+    int             i;          // global incrementer
     
     // Allocate mem (i/o arrays)
     /* 
@@ -331,8 +335,9 @@ void templatefftw_basicfft(t_templatefftw *x, long N)
         fftw_alloc_real(N)    == (double*)fftw_malloc(sizeof(double) * N)
         fftw_alloc_complex(N) == (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N),
      */
-    in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
-    out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
+    data        = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
+    fft_out     = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
+    ifft_out    = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
     
     // Make a plan
     /*
@@ -347,7 +352,19 @@ void templatefftw_basicfft(t_templatefftw *x, long N)
       - Once the plan has been created you can use it as many as times as you like to transform the specified i/o arrays (w/fftw_execute(fftw_plan p)).
       - If you want to transform a different array of the ame size, you can create a new plan w/fftw_plan_dft_1d and FFTW automatically reuses the info from previous plan when possible.
      */
-    p = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    p_forw = fftw_plan_dft_1d(N, data,      fft_out,    FFTW_FORWARD,   FFTW_ESTIMATE);
+    p_back = fftw_plan_dft_1d(N, fft_out,   ifft_out,   FFTW_BACKWARD,  FFTW_ESTIMATE);
+    
+    for( i = 0 ; i < N ; i++ ) {
+        data[i][0] = 1.0; // stick your audio samples in here
+        data[i][1] = 0.0; // use this if your data is complex valued
+    }
+    
+    
+    for( i = 0 ; i < N ; i++ ) {
+        fprintf( stdout, "data[%d] = { %2.2f, %2.2f }\n",
+                i, data[i][0], data[i][1] );
+    }
     
     // Compute transform
     /*
@@ -356,10 +373,29 @@ void templatefftw_basicfft(t_templatefftw *x, long N)
      Computes an unormalized DFT, so couputing FORWARD then BACKWARD transform results in the original array scaled by n.
      
      */
-    fftw_execute(p); /* repeat as needed */
+    fftw_execute(p_forw);
     
-    fftw_destroy_plan(p);
-    fftw_free(in); fftw_free(out);
+    for( i = 0 ; i < N ; i++ ) {
+        fprintf( stdout, "fft_result[%d] = { %2.2f, %2.2f }\n",
+                i, fft_out[i][0], fft_out[i][1] );
+    }
+    
+    
+    fftw_execute(p_back);
+    
+    for( i = 0 ; i < N ; i++ ) {
+        fprintf( stdout, "ifft_result[%d] = { %2.2f, %2.2f }\n",
+                i, ifft_out[i][0] / N, ifft_out[i][1] / N );
+    }
+
+    
+    fftw_destroy_plan(p_forw);
+    fftw_destroy_plan(p_back);
+    
+    fftw_free(data);
+    fftw_free(fft_out); fftw_free(ifft_out);
+    
+    
 }
 
 
