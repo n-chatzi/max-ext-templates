@@ -1,6 +1,6 @@
 /**
  *
- *  @file	template~.c
+ *  @file	templatefftw~.c
  *
  *
  *  Sources :
@@ -22,6 +22,11 @@
  *   Beoit Bouchez
  *    - Writing-MaxMSP-Externals-on-Windows :
  *          http://1cyjknyddcx62agyb002-c74projects.s3.amazonaws.com/files/2013/11/Writing-MaxMSP-Externals-on-Windows.pdf
+ *
+ *
+ *   FFTW3 documentation :
+ *      http://www.fftw.org/fftw3.pdf
+ *
  *
  */
 
@@ -46,6 +51,7 @@
 #include "ext_obex.h"		// required for "new" style objects
 #include "z_dsp.h"			// required for MSP objects
 
+#include "fftw3.h"
 
 
 //____________________________________________________________________
@@ -58,16 +64,16 @@
  */
 
 // Basic Max objects are declared as C structures. The first element of the structure is a t_object, followed by whatever you want. The example below has one long structure member.
-typedef struct _template	///<	A struct to hold data for our object
+typedef struct _templatefftw	///<	A struct to hold data for our object
 {
     t_pxobject x_obj;       ///<	The object itself (t_pxobject in MSP instead of t_object)
     t_float x_val;          ///<	Value to use for the processing
     void *x_output;         ///<    Output definition
 
-} t_template;
+} t_templatefftw;
 
 // global pointer to our class definition that is setup in main()
-static t_class *template_class = NULL;
+static t_class *templatefftw_class = NULL;
 
 
 
@@ -78,23 +84,23 @@ static t_class *template_class = NULL;
 //____________________________________________________________________
 
 //// standard set
-void *template_new( t_symbol *s, long argc, t_atom *argv);
-void template_free( t_template *x);
-void template_assist(t_template *x, void *b, long m, long a, char *s);
+void *templatefftw_new( t_symbol *s, long argc, t_atom *argv);
+void templatefftw_free( t_templatefftw *x);
+void templatefftw_assist(t_templatefftw *x, void *b, long m, long a, char *s);
 
 //// value specific
-void template_float(t_template *x, double f);
-void template_int(  t_template *x, long n);
-void template_bang( t_template *x);
+void templatefftw_float(t_templatefftw *x, double f);
+void templatefftw_int(  t_templatefftw *x, long n);
+void templatefftw_bang( t_templatefftw *x);
 
 //// additional inlet behavious
-void template_in0( t_template *x, long n);      //1st inlet
-void template_in1( t_template *x, long n);      //2nd inlet
+void templatefftw_in0( t_templatefftw *x, long n);      //1st inlet
+void templatefftw_in1( t_templatefftw *x, long n);      //2nd inlet
 
 //// performance set
-void template_dsp64(t_template *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);
-void template_perform64(t_template *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
-
+void templatefftw_dsp64(t_templatefftw *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);
+void templatefftw_perform64(t_templatefftw *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam);
+void templatefftw_basicfft(t_templatefftw *x, long N);
 
 
 
@@ -121,17 +127,17 @@ void ext_main(void *r)
     // your custom free function.
     
     // creates a class with the new instance routine (see below), a free function (in this case there isn't one, so we pass NULL), the size of the structure, a no-longer used argument, and then a description of the arguments you type when creating an instance (in this case, there are no arguments, so we pass 0).
-    t_class *c = class_new("template~", (method)template_new, (method)dsp_free, (long)sizeof(t_template), 0L, A_GIMME, 0);
+    t_class *c = class_new("templatefftw~", (method)templatefftw_new, (method)dsp_free, (long)sizeof(t_templatefftw), 0L, A_GIMME, 0);
     
     //binds a C function to a text symbol. The two methods defined here are int and bang.
-    class_addmethod(c, (method)template_bang,       "bang",             0);
-    class_addmethod(c, (method)template_int,        "int",      A_LONG, 0);
-    class_addmethod(c, (method)template_float,		"float",	A_FLOAT,0);
-    class_addmethod(c, (method)template_dsp64,		"dsp64",	A_CANT, 0);
-    class_addmethod(c, (method)template_assist,     "assist",	A_CANT, 0);
+    class_addmethod(c, (method)templatefftw_bang,       "bang",             0);
+    class_addmethod(c, (method)templatefftw_int,        "int",      A_LONG, 0);
+    class_addmethod(c, (method)templatefftw_float,		"float",	A_FLOAT,0);
+    class_addmethod(c, (method)templatefftw_dsp64,		"dsp64",	A_CANT, 0);
+    class_addmethod(c, (method)templatefftw_assist,     "assist",	A_CANT, 0);
     
-    class_addmethod(c, (method)template_in0,        "int",      A_LONG, 0);
-    class_addmethod(c, (method)template_in1,        "in0",      A_LONG, 0);
+    class_addmethod(c, (method)templatefftw_in0,        "int",      A_LONG, 0);
+    class_addmethod(c, (method)templatefftw_in1,        "in0",      A_LONG, 0);
     
     // if the filename on disk is different from the object name in Max, ex. w/ times
 //  class_setname("*~","times~");
@@ -143,7 +149,7 @@ void ext_main(void *r)
     class_register(CLASS_BOX, c);
     
     //assign the class we've created to a global variable so we can use it when creating new instances.
-    template_class = c;
+    templatefftw_class = c;
     
 }
 
@@ -156,10 +162,10 @@ void ext_main(void *r)
 //____________________________________________________________________
 
 
-void *template_new(t_symbol *s, long argc, t_atom *argv)
+void *templatefftw_new(t_symbol *s, long argc, t_atom *argv)
 {
     //Setup the custom struct for our object
-    t_template *x = (t_template *) object_alloc((t_class *) template_class);
+    t_templatefftw *x = (t_templatefftw *) object_alloc((t_class *) templatefftw_class);
     
     //Setup 2 inlets for our object
     dsp_setup((t_pxobject *)x, 2);
@@ -175,14 +181,14 @@ void *template_new(t_symbol *s, long argc, t_atom *argv)
 }
 
 // NOT CALLED!, we use dsp_free for a generic free function
-void template_free(t_template *x)
+void templatefftw_free(t_templatefftw *x)
 {
     ;
 }
 
 //Documentation shown when hovering over an inlet/outlet
-//template~: sprintf content here
-void template_assist(t_template *x, void *b, long m, long a, char *s)
+//templatefftw~: sprintf content here
+void templatefftw_assist(t_templatefftw *x, void *b, long m, long a, char *s)
 {
     if (m == ASSIST_INLET) {
         //inlet
@@ -208,12 +214,12 @@ void template_assist(t_template *x, void *b, long m, long a, char *s)
 //                          Inlet Handlers
 //____________________________________________________________________
 
-void template_in0( t_template *x, long n)
+void templatefftw_in0( t_templatefftw *x, long n)
 {
     object_post((t_object *)x, "in 0 got : %ld", n);
 }
 
-void template_in1( t_template *x, long n)
+void templatefftw_in1( t_templatefftw *x, long n)
 {
     object_post((t_object *)x, "in 1 got : %ld", n);
 }
@@ -233,18 +239,18 @@ void template_in1( t_template *x, long n)
  */
 
 //This simply copies the value of the argument to the internal storage within the instance.
-void template_int(t_template *x, long n)
+void templatefftw_int(t_templatefftw *x, long n)
 {
     x-> x_val = n;
 }
 
 //This simply copies the value of the argument to the internal storage within the instance.
-void template_float(t_template *x, double f)
+void templatefftw_float(t_templatefftw *x, double f)
 {
     x-> x_val = f;
 }
 
-void template_bang(t_template *x)
+void templatefftw_bang(t_templatefftw *x)
 {
     post("value is %ld",x->x_val);
 }
@@ -259,7 +265,7 @@ void template_bang(t_template *x)
 
 // registers a function for the signal chain in Max
 // Calls the appropriate functions to do the processing
-void template_dsp64(t_template *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
+void templatefftw_dsp64(t_templatefftw *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
 {
     post("my sample rate is: %f", samplerate);
     
@@ -274,12 +280,12 @@ void template_dsp64(t_template *x, t_object *dsp64, short *count, double sampler
             6: a generic pointer that you can use to pass any additional data to your perform method
      */
     
-    object_method(dsp64, gensym("dsp_add64"), x, template_perform64, 0, NULL);
+    object_method(dsp64, gensym("dsp_add64"), x, templatefftw_perform64, 0, NULL);
 }
 
 // this is the 64-bit perform method audio vectors
 // Perform processing on signal & float connected to inlets
-void template_perform64(t_template *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
+void templatefftw_perform64(t_templatefftw *x, t_object *dsp64, double **ins, long numins, double **outs, long numouts, long sampleframes, long flags, void *userparam)
 {
     t_double *inL = ins[0];     // we get audio for each inlet of the object from the **ins argument
     t_double *inR = ins[1];
@@ -311,5 +317,74 @@ void template_perform64(t_template *x, t_object *dsp64, double **ins, long numin
 //____________________________________________________________________
 //                          Additional Routines
 //____________________________________________________________________
+
+void templatefftw_basicfft(t_templatefftw *x, long N)
+{
+    fftw_complex *in, *out;
+    fftw_plan p;
+    
+    // Allocate mem (i/o arrays)
+    /* 
+     fftw_malloc behaves like malloc, except that it properly aligns the array when SIMD (Single Instruction Multiple Data) instructions. Whereas malloc() only allocates, if not properly aligned FFTW will not use SIMD extensions.
+     SIMD : a set of special operations supported by some processors (cf. doc) to perform a single operation on several numbers (usually 2 or 4) simultaneously. Programs compiled w/SIMD = nonnegligible speedup for most r2c/c2r.
+     Wrapper routines : 
+        fftw_alloc_real(N)    == (double*)fftw_malloc(sizeof(double) * N)
+        fftw_alloc_complex(N) == (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N),
+     */
+    in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
+    out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
+    
+    // Make a plan
+    /*
+     Object that contains all th data that FFTW needs to compute the FFT.
+      
+      4th arg : FFTW_FORWARD : -/+ 1  sign of the exponent in the transform.
+      5th arg : FFTW_ESTIMATE : does not run any computation and just builds a reasonable plan that is probably sub-optimal. does not touch arrays, but make a plan to be sure
+                     or
+                FFTW_MEASURE : measure the execution time of several FFTs in order to find the best way to compute the transform of size n. Overwrites the i/o arrays
+                a lot of other flags are included, check def of FFTW_ESTIMATE to check them out.
+     Note : 
+      - Once the plan has been created you can use it as many as times as you like to transform the specified i/o arrays (w/fftw_execute(fftw_plan p)).
+      - If you want to transform a different array of the ame size, you can create a new plan w/fftw_plan_dft_1d and FFTW automatically reuses the info from previous plan when possible.
+     */
+    p = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    
+    // Compute transform
+    /*
+     DFT results are stored in-order in the output array (i.e. out). out[0] == DC component.
+     If in != out => transform is out-of-place => in is not modified. Otherwise input array is overwritten with the transform.
+     Computes an unormalized DFT, so couputing FORWARD then BACKWARD transform results in the original array scaled by n.
+     
+     */
+    fftw_execute(p); /* repeat as needed */
+    
+    fftw_destroy_plan(p);
+    fftw_free(in); fftw_free(out);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

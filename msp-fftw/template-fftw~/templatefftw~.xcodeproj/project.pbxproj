@@ -7,15 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		22CF119B0EE9A8250054F513 /* template-fftw~.c in Sources */ = {isa = PBXBuildFile; fileRef = 22CF119A0EE9A8250054F513 /* template-fftw~.c */; };
+		22CF119B0EE9A8250054F513 /* templatefftw~.c in Sources */ = {isa = PBXBuildFile; fileRef = 22CF119A0EE9A8250054F513 /* templatefftw~.c */; };
 		234CB7371CEB331900C338E8 /* fftw3.h in Headers */ = {isa = PBXBuildFile; fileRef = 234CB7361CEB331900C338E8 /* fftw3.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		22CF10220EE984600054F513 /* maxmspsdk.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = maxmspsdk.xcconfig; path = ../../maxmspsdk.xcconfig; sourceTree = SOURCE_ROOT; };
-		22CF119A0EE9A8250054F513 /* template-fftw~.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "template-fftw~.c"; sourceTree = "<group>"; };
+		22CF119A0EE9A8250054F513 /* templatefftw~.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "templatefftw~.c"; sourceTree = "<group>"; };
 		234CB7361CEB331900C338E8 /* fftw3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fftw3.h; sourceTree = "<group>"; };
-		2FBBEAE508F335360078DB84 /* template-fftw~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "template-fftw~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2FBBEAE508F335360078DB84 /* templatefftw~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "templatefftw~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -34,7 +34,7 @@
 			children = (
 				234CB7361CEB331900C338E8 /* fftw3.h */,
 				22CF10220EE984600054F513 /* maxmspsdk.xcconfig */,
-				22CF119A0EE9A8250054F513 /* template-fftw~.c */,
+				22CF119A0EE9A8250054F513 /* templatefftw~.c */,
 				19C28FB4FE9D528D11CA2CBB /* Products */,
 			);
 			name = iterator;
@@ -43,7 +43,7 @@
 		19C28FB4FE9D528D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2FBBEAE508F335360078DB84 /* template-fftw~.mxo */,
+				2FBBEAE508F335360078DB84 /* templatefftw~.mxo */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -78,7 +78,7 @@
 			);
 			name = "max-external";
 			productName = iterator;
-			productReference = 2FBBEAE508F335360078DB84 /* template-fftw~.mxo */;
+			productReference = 2FBBEAE508F335360078DB84 /* templatefftw~.mxo */;
 			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
@@ -89,7 +89,7 @@
 			attributes = {
 				LastUpgradeCheck = 0730;
 			};
-			buildConfigurationList = 2FBBEACF08F335010078DB84 /* Build configuration list for PBXProject "template-fftw~" */;
+			buildConfigurationList = 2FBBEACF08F335010078DB84 /* Build configuration list for PBXProject "templatefftw~" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
@@ -133,7 +133,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				22CF119B0EE9A8250054F513 /* template-fftw~.c in Sources */,
+				22CF119B0EE9A8250054F513 /* templatefftw~.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -268,7 +268,7 @@
 					"$(C74_SYM_LINKER_FLAGS)",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "chatzi.${PRODUCT_NAME:rfc1034identifier}";
-				PRODUCT_NAME = "template-fftw~";
+				PRODUCT_NAME = "templatefftw~";
 				PRODUCT_VERSION = 7.0.1;
 				SKIP_INSTALL = NO;
 				WARNING_CFLAGS = (
@@ -319,7 +319,7 @@
 					"$(C74_SYM_LINKER_FLAGS)",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "chatzi.${PRODUCT_NAME:rfc1034identifier}";
-				PRODUCT_NAME = "template-fftw~";
+				PRODUCT_NAME = "templatefftw~";
 				PRODUCT_VERSION = 7.0.1;
 				SKIP_INSTALL = NO;
 				WARNING_CFLAGS = (
@@ -334,7 +334,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2FBBEACF08F335010078DB84 /* Build configuration list for PBXProject "template-fftw~" */ = {
+		2FBBEACF08F335010078DB84 /* Build configuration list for PBXProject "templatefftw~" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2FBBEAD008F335010078DB84 /* Development */,
