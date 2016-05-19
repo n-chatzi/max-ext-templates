@@ -147,7 +147,7 @@ void ext_main(void *r)
     t_class *c ;
     c = class_new("template", (method)template_new, (method)template_free, (long)sizeof(t_template), 0L, A_GIMME, 0);
     
-    //binds a C function to a text symbol. The two methods defined here are int and bang.
+    //binds a C function to a text symbol.
     class_addmethod(c, (method)template_bang,       "bang",             0);
     class_addmethod(c, (method)template_int,        "int",      A_LONG, 0);
     class_addmethod(c, (method)template_float,		"float",	A_FLOAT,0);
@@ -159,6 +159,12 @@ void ext_main(void *r)
     //Add a new attribute to the specified attribute to specify that it should appear in the inspector's Basic tab.
     class_addmethod(c, (method)template_identify,   "identify",         0);
     
+    // The A_LONG, 0 args specify the type of arguments expeced by the C function
+    // A_LONG   long int        A_DEFLONG   puts a 0 in the place of a mising long argument
+    // A_FLOAT  double          A_DEFFLOAT  ----------------------------------float--------
+    // A_SYM    symbols         A_DEFSYM    -----an empty symbol--------------symbol-------
+    // A_GIMME  raw list of atoms, since mutliple A_FLOAT should be avoided (cf. MaxAPI), A_GIMME should be used for more than four arguments or with multiple floating-point arguments
+    // A_CANT   used when we cannot type check the argument
     class_addmethod(c, (method)template_in0,        "int",      A_LONG, 0);
     class_addmethod(c, (method)template_in1,        "in1",      A_LONG, 0);
     

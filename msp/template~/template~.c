@@ -143,13 +143,19 @@ void ext_main(void *r)
     // creates a class with the new instance routine (see below), a free function (in this case there isn't one, so we pass NULL), the size of the structure, a no-longer used argument, and then a description of the arguments you type when creating an instance (in this case, there are no arguments, so we pass 0).
     t_class *c = class_new("template~", (method)template_new, (method)dsp_free, (long)sizeof(t_template), 0L, A_GIMME, 0);
     
-    //binds a C function to a text symbol. The two methods defined here are int and bang.
+    //binds a C function to a text symbol. The three methods defined here are int, float and bang.
     class_addmethod(c, (method)template_bang,       "bang",             0);
     class_addmethod(c, (method)template_int,        "int",      A_LONG, 0);
     class_addmethod(c, (method)template_float,		"float",	A_FLOAT,0);
     class_addmethod(c, (method)template_dsp64,		"dsp64",	A_CANT, 0);
     class_addmethod(c, (method)template_assist,     "assist",	A_CANT, 0);
     
+    // The A_LONG, 0 args specify the type of arguments expeced by the C function
+    // A_LONG   long int        A_DEFLONG   puts a 0 in the place of a mising long argument
+    // A_FLOAT  double          A_DEFFLOAT  ----------------------------------float--------
+    // A_SYM    symbols         A_DEFSYM    -----an empty symbol--------------symbol-------
+    // A_GIMME  raw list of atoms, since mutliple A_FLOAT should be avoided (cf. MaxAPI), A_GIMME should be used for more than four arguments or with multiple floating-point arguments
+    // A_CANT   used when we cannot type check the argument
     class_addmethod(c, (method)template_in0,        "int",      A_LONG, 0);
     class_addmethod(c, (method)template_in1,        "in1",      A_LONG, 0);
     

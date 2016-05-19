@@ -140,9 +140,15 @@ void ext_main(void *r)
     class_addmethod(c, (method)templatefftw_dsp64,		"dsp64",	A_CANT, 0);
     class_addmethod(c, (method)templatefftw_assist,     "assist",	A_CANT, 0);
     
+    // The A_LONG, 0 args specify the type of arguments expeced by the C function
+    // A_LONG   long int        A_DEFLONG   puts a 0 in the place of a mising long argument
+    // A_FLOAT  double          A_DEFFLOAT  ----------------------------------float--------
+    // A_SYM    symbols         A_DEFSYM    -----an empty symbol--------------symbol-------
+    // A_GIMME  raw list of atoms, since mutliple A_FLOAT should be avoided (cf. MaxAPI), A_GIMME should be used for more than four arguments or with multiple floating-point arguments
+    // A_CANT   used when we cannot type check the argument
     class_addmethod(c, (method)templatefftw_in0,        "int",      A_LONG, 0);
     class_addmethod(c, (method)templatefftw_in1,        "in0",      A_LONG, 0);
-    class_addmethod(c, (method)templatefftw_dblclick,    "dblclick",  A_CANT, 0);
+    class_addmethod(c, (method)templatefftw_dblclick,   "dblclick", A_CANT, 0);
     
     // if the filename on disk is different from the object name in Max, ex. w/ times
 //  class_setname("*~","times~");
