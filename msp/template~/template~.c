@@ -58,7 +58,7 @@
     // do something specific to Windows
 #endif
 
-#include "ext_byteorder.h"  // provides cross-platform tools for manipulating memory in an endian-independent way.
+//#include "ext_byteorder.h"  // provides cross-platform tools for manipulating memory in an endian-independent way.
 
 #include "ext.h"            // should always be first, then ext_obex.h + other files.
 #include "ext_obex.h"		// required for "new" style objects
@@ -195,7 +195,7 @@ void *template_new(t_symbol *s, long argc, t_atom *argv)
     outlet_new((t_pxobject *)x, "signal");
     
     // splatted in _dsp method if optimizations are on
-    x->x_val = argc;
+    x->x_val = (t_float)argc;
     
     return (x);
 }
@@ -267,7 +267,7 @@ void template_int(t_template *x, long n)
 //This simply copies the value of the argument to the internal storage within the instance.
 void template_float(t_template *x, double f)
 {
-    x-> x_val = f;
+    x-> x_val = (t_float)f;
 }
 
 void template_bang(t_template *x)
