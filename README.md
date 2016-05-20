@@ -48,6 +48,7 @@ If issues persist, compare your *Settings* to that of an example in the Max SDK 
 Similarly to Xcode with its Info.plist, the Max/MSP SDK uses a ``.props`` file to configure the project variables such as ``$(C74SUPPORT)`` and ``$(OutDir)``.
 
 So, to the following parameters need to be configured :
+
 | File Name                 | Variable Name                     |
 |---------------------------|-----------------------------------|
 | max_extern_common.props   | ``<OutDir>__PATH__</OutDir>``         |
