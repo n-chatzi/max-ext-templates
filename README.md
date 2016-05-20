@@ -25,6 +25,7 @@ Download the zipped file, extract and open the folder containing a specific proj
 
 The tilde indicates that object treats audio ( **MSP** ) as opposed to data ( **Max** ).
 
+In **Max**, in the *Options* menu go to *File Preferences* and add the path to your externals folder. There should already be a folder named externals in the max-sdk-7 folder.
 Once built, restart **Max** and test your object.
 
 ### Xcode
@@ -44,14 +45,19 @@ If issues persist, compare your *Settings* to that of an example in the Max SDK 
 
 ### Visual Studio
 
-Verify the following settings for the project in the *Properties* of the *Debug* section.
+Similarly to Xcode with its Info.plist, the Max/MSP SDK uses a ``.props`` file to configure the project variables such as ``$(C74SUPPORT)`` and ``$(OutDir)``.
 
-Choose All Configurations in the Configuration drop-down menu and check the following values :
-- Configuration Properties  
--- Output Directory : the path in which the .mxe will be built
+So, to the following parameters need to be configured :
+| File Name                 | Variable Name                     |
+|---------------------------|-----------------------------------|
+| max_extern_common.props   | ``<OutDir>__PATH__</OutDir>``         |
+| max_extern_common.props   | ``<C74SUPPORT>__PATH__</C74SUPPORT>`` |
 
-- C/C++   
--- Additional Include Directories : this should be the path to max-includes, msp-includes, jit-includes. They can be found here max-sdk-7.1.0\source\c74support
+Visual Studio should find the ``.props`` by himself. If not, open the ``.vcxproj`` and change the ``<Import Project= PathToProps>`` for the ``max_extern_common``, ``max_extern_x86`` and ``max_extern_x64``.
+
+### Alternate Solution
+
+Alternatively, Considering the previous guidelines, the easiest solution would be to simply make a copy of a Max/MSP SDK project example next to the other examples. *Most* of the settings will be correct. But where is the fun in that.
 
 ### FFTW
 
